@@ -3,7 +3,7 @@ from PIL import Image
 import os
 from torch.utils.data import DataLoader, Dataset
 import torch
-from skimage import io, transform
+from skimage import transform
 import matplotlib.pyplot as plt
 
 class NaturalDisasterDataset(Dataset):
@@ -31,7 +31,15 @@ class NaturalDisasterDataset(Dataset):
         if self.transform:
             image = self.transform(image)
 
-        return {"image": image, "category": label}
+        label_map = {
+            "Normal": 0,
+            "Earthquake": 1,
+            "Fire": 2,
+            "Flood": 3
+        }    
+
+        sample = {"image": image, "category": label_map[label]}
+        return sample
 
 
     
@@ -41,13 +49,15 @@ def load_sample(root:str):
         transform=None
     )
 
-    categories_needed = {"Earthquake", "Flood", "Fire", "Normal"}
+    categories_needed = {"Normal", "Earthquake", "Fire", "Flood"}
+    category_map = ["Normal", "Earthquake", "Fire", "Flood"]
     shown = {}
 
     fig = plt.figure(figsize=(10, 3))
 
     for sample in disaster_dataset:
         category = sample["category"]
+        category = category_map[category]
 
         # If we still need this category
         if category in categories_needed and category not in shown:
