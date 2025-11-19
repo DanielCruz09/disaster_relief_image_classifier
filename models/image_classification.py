@@ -23,6 +23,7 @@ def write_to_csv(line, write_path, header=None):
     text = ""
     for item in line:
         text += str(item) + ","
+    text = text[:-1]
     with open(write_path, mode=mode) as csvfile:
         csvfile.write(text)
         csvfile.write("\n")
@@ -57,8 +58,7 @@ def classify_images(model, image_path):
                 include_header = False
 
                 index += 1
-                
-
+            
 
 def main():
     classifier = pipeline("image-classification", model="Luwayy/disaster_images_model")
