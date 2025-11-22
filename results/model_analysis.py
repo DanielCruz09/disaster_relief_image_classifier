@@ -1,5 +1,12 @@
 import pandas as pd
 
+def get_accuracy_per_class(results):
+    for label in ["Non_Damage", "Land_Disaster", "Fire_Disaster", "Water_Disaster"]:
+        total = results[results["True"] == label]
+        correct = total[total["Correct"] == True]
+        acc = len(correct) / len(total)
+        print(f"{label}\t{acc}")
+
 def calculate_precision(results):
     """
                                             True
@@ -24,6 +31,7 @@ def main():
     print(f"Accuracy: {round(num_correct / len(results), 2)}")
 
     calculate_precision(results)
+    get_accuracy_per_class(results)
 
 if __name__ == "__main__":
     main()
