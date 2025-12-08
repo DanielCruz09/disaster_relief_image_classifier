@@ -50,6 +50,8 @@ def classify_images(model, image_path):
 
             for path, result in zip(batch, predictions):
                 predicted_label = result[0]["label"]
+                if predicted_label == "Damaged_Infrastructure":
+                    predicted_label = "Land_Disaster"
                 if include_header:
                     write_to_csv(line=[index, true_label, predicted_label], write_path=write_path, header="Index,True,Predicted")
                 else:
