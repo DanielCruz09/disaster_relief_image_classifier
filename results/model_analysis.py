@@ -7,6 +7,15 @@ def get_accuracy_per_class(results):
         acc = len(correct) / len(total)
         print(f"{label}\t{acc}")
 
+    non_damage = results[results["True"] == "Non_Damage"]
+    n_normal = len(non_damage[non_damage["Predicted"] == "Non_Damage"])
+    n_fire = len(non_damage[non_damage["Predicted"] == "Fire_Disaster"])
+    n_flood = len(non_damage[non_damage["Predicted"] == "Water_Disaster"])
+    n_land = len(non_damage[non_damage["Predicted"] == "Land_Disaster"])
+
+    print(f"Normal: {n_normal}\t Fire: {n_fire}\t Flood: {n_flood}\t Land: {n_land}")
+
+
 def calculate_precision(results):
     """
                                             True
@@ -28,9 +37,9 @@ def main():
     results = pd.read_csv("results.csv")
     results["Correct"] = results["True"] == results["Predicted"]
     num_correct = len(results[results["Correct"] == True])
-    print(f"Accuracy: {round(num_correct / len(results), 2)}")
+    print(f"Accuracy: {round(num_correct / len(results), 3)}")
 
-    calculate_precision(results)
+    # calculate_precision(results)
     get_accuracy_per_class(results)
 
 if __name__ == "__main__":

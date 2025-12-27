@@ -3,6 +3,9 @@ from PIL import Image
 import os
 from natural_disaster_dataset import NaturalDisasterDataset
 from pathlib import Path
+from skimage.exposure import equalize_adapthist
+from torch.utils.data import DataLoader
+from resnet50 import ResNet50
 
 def rename_directories(old_name, new_name):
     try:
@@ -31,7 +34,7 @@ def write_to_csv(line, write_path, header=None):
 def classify_images(model, image_path):
 
     batch_size = 32
-    trainset = NaturalDisasterDataset(root=image_path)
+    trainset = NaturalDisasterDataset(root=image_path, transform=equalize_adapthist)
     include_header = True
     index = 0
     write_path = "../results/results.csv"
@@ -66,6 +69,7 @@ def main():
     classifier = pipeline("image-classification", model="Luwayy/disaster_images_model")
     image_path = "../data/processed/Train/"
     natural_disaster_dataset = NaturalDisasterDataset(root=image_path)
+    loader = DataLoader(natural_disaster_dataset, batch_size=32, shuffle=True)
     # natural_disaster_dataset.load_sample()
     renamed = {
         "Normal": "Non_Damage",
@@ -78,7 +82,9 @@ def main():
         new_path = os.path.join(image_path, renamed[name])
         rename_directories(old_path, new_path)
 
-    classify_images(classifier, image_path)
+    resnet50 = ResNet50(num_classes=len(renamed))
+    resnet50.train(epochs=10, train_loader=loader)
+    # classify_images(classifier, image_path)
 
 
 if __name__ == "__main__":
