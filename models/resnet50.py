@@ -4,6 +4,7 @@ import torch.optim as optim
 import torchvision.models as models
 import numpy as np
 from PIL import Image
+import torchvision.transforms as transforms
 
 class ResNet50():
 
@@ -24,8 +25,13 @@ class ResNet50():
             for i, data in enumerate(train_loader, 0):
                 inputs, labels = data
                 self.optimizer.zero_grad()
-                outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
+                # outputs = self.model(inputs)
+                # loss = self.criterion(outputs, labels)
+                outputs = self.model(data[inputs].float())
+                # target = torch.tensor(data[labels])
+                print(data[labels])
+                with torch.tensor(data[labels]) as target:
+                    loss = self.criterion(outputs, target)
                 loss.backwards()
                 self.optimizer.step()
                 current_loss += loss.item()

@@ -4,6 +4,9 @@ from torch.utils.data import DataLoader, Dataset
 import torch
 from skimage import transform
 import matplotlib.pyplot as plt
+import numpy as np
+import torchvision.transforms as transforms
+import torchvision.transforms.functional as TF
 
 class NaturalDisasterDataset(Dataset):
     """
@@ -62,7 +65,9 @@ class NaturalDisasterDataset(Dataset):
         if self.transform:
             image = self.transform(image) 
 
+        image = transforms.PILToTensor()(image)
         sample = {"image": image, "category": label}
+        # print(f"Image Type: {type(image)}")
         return sample
 
     
