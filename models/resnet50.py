@@ -6,6 +6,17 @@ import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
 
+def create_indices(labels):
+    mapping = {
+        "Non_Damage": 0,
+        "Land_Disaster": 1,
+        "Fire_Disaster": 2,
+        "Water_Disaster": 3
+    }
+
+    indices = list(mapping[category] for category in labels)
+    return indices
+
 class ResNet50():
 
     def __init__(self, num_classes, lr=0.01, momentum=0.9):
@@ -28,11 +39,10 @@ class ResNet50():
                 # outputs = self.model(inputs)
                 # loss = self.criterion(outputs, labels)
                 outputs = self.model(data[inputs].float())
-                # target = torch.tensor(data[labels])
-                print(data[labels])
-                with torch.tensor(data[labels]) as target:
-                    loss = self.criterion(outputs, target)
-                loss.backwards()
+                indices = create_indices(data[labels])
+                target = torch.tensor(indices)
+                loss = self.criterion(outputs, target)
+                loss.backward()
                 self.optimizer.step()
                 current_loss += loss.item()
             print(f"Epoch: {epoch + 1} \t Loss: {current_loss / len(train_loader)}")
