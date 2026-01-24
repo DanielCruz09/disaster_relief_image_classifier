@@ -83,7 +83,8 @@ def main():
         rename_directories(old_path, new_path)
 
     resnet50 = ResNet50(num_classes=len(renamed))
-    resnet50.train(epochs=10, train_loader=loader)
+    # resnet50.train(epochs=5, train_loader=loader)
+    resnet50.eval(loader)
     # classify_images(classifier, image_path)
 
 
