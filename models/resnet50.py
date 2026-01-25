@@ -28,7 +28,7 @@ class ResNet50():
         self.model.fc = nn.Linear(self.num_features, self.num_classes)
 
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.lr, momentum=self.momentum)
+        self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=self.momentum)
 
     def train(self, epochs, train_loader):
         for epoch in range(epochs):
@@ -62,4 +62,4 @@ class ResNet50():
                 total += len(labels)
                 correct += (predicted == labels).sum().item()
         
-        print(f'Accuracy of the network on the test images: {100 * correct / total}%')
+        print(f'Accuracy of the network on the test images: {round(100 * correct / total, 3)}%')

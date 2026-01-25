@@ -66,7 +66,7 @@ def classify_images(model, image_path):
             
 
 def main():
-    classifier = pipeline("image-classification", model="Luwayy/disaster_images_model")
+    #classifier = pipeline("image-classification", model="Luwayy/disaster_images_model")
     image_path = "../data/processed/Train/"
     natural_disaster_dataset = NaturalDisasterDataset(root=image_path)
     loader = DataLoader(natural_disaster_dataset, batch_size=32, shuffle=True)
@@ -83,8 +83,16 @@ def main():
         rename_directories(old_path, new_path)
 
     resnet50 = ResNet50(num_classes=len(renamed))
-    # resnet50.train(epochs=5, train_loader=loader)
-    resnet50.eval(loader)
+    resnet50.train(epochs=5, train_loader=loader)
+    test_path = "../data/processed/Test/"
+    test_dataset = NaturalDisasterDataset(root=test_path)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
+
+    for name in renamed.keys():
+        old_path = os.path.join(test_path, name)
+        new_path = os.path.join(test_path, renamed[name])
+        rename_directories(old_path, new_path)
+    resnet50.eval(test_loader=test_loader)
     # classify_images(classifier, image_path)
 
 
