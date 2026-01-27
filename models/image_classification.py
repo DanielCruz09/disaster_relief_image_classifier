@@ -6,6 +6,7 @@ from pathlib import Path
 from skimage.exposure import equalize_adapthist
 from torch.utils.data import DataLoader
 from resnet50 import ResNet50
+import torch
 
 def rename_directories(old_name, new_name):
     try:
@@ -83,7 +84,9 @@ def main():
         rename_directories(old_path, new_path)
 
     resnet50 = ResNet50(num_classes=len(renamed))
-    resnet50.train(epochs=5, train_loader=loader)
+    # resnet50.train(epochs=5, train_loader=loader)
+    weights = torch.load("model_weights.pth")
+    resnet50.model.load_state_dict(weights["model_state_dict"])
     test_path = "../data/processed/Test/"
     test_dataset = NaturalDisasterDataset(root=test_path)
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
