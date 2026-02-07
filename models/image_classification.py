@@ -30,44 +30,9 @@ def write_to_csv(line, write_path, header=None):
     text = text[:-1]
     with open(write_path, mode=mode) as csvfile:
         csvfile.write(text)
-        csvfile.write("\n")
-
-def classify_images(model, image_path):
-
-    batch_size = 32
-    trainset = NaturalDisasterDataset(root=image_path, transform=equalize_adapthist)
-    include_header = True
-    index = 0
-    write_path = "../results/results.csv"
-
-    for true_label in os.listdir(image_path):
-        class_dir = os.path.join(image_path, true_label)
-
-        paths = []
-        for file in os.listdir(class_dir):
-            paths.append(os.path.join(class_dir, file))
-            
-        for i in range(0, len(paths), batch_size):
-            batch = paths[i:i+batch_size]
-            images = [Image.open(path).convert("RGB") for path in batch]
-            predictions = model(images)
-
-            for path, result in zip(batch, predictions):
-                predicted_label = result[0]["label"]
-                if predicted_label == "Damaged_Infrastructure":
-                    predicted_label = "Land_Disaster"
-                if include_header:
-                    write_to_csv(line=[index, true_label, predicted_label], write_path=write_path, header="Index,True,Predicted")
-                else:
-                    write_to_csv(line=[index, true_label, predicted_label], write_path=write_path)
-
-                include_header = False
-
-                index += 1
-            
+        csvfile.write("\n")            
 
 def main():
-    #classifier = pipeline("image-classification", model="Luwayy/disaster_images_model")
     image_path = "../data/processed/Train/"
     natural_disaster_dataset = NaturalDisasterDataset(root=image_path)
     loader = DataLoader(natural_disaster_dataset, batch_size=32, shuffle=True)
@@ -96,8 +61,6 @@ def main():
         new_path = os.path.join(test_path, renamed[name])
         rename_directories(old_path, new_path)
     resnet50.eval(test_loader=test_loader)
-    # classify_images(classifier, image_path)
-
 
 if __name__ == "__main__":
     main()

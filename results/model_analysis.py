@@ -1,16 +1,16 @@
 import pandas as pd
-from sklearn.metrics import multilabel_confusion_matrix, confusion_matrix
+from sklearn.metrics import confusion_matrix, precision_recall_curve, precision_score, recall_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 def get_results(results):
     predicted = results["Predicted"]
-    actual = results["Actual"]
+    actual = results["True"]
 
     predicted_labels = []
     actual_labels = []
 
-    labels = ["Non_Damage", "Land_Disaster", "Fire_Disaster", "Water_Disaster"]
+    labels = ["Non-Damage", "Earthquake", "Fire", "Flood"]
 
     for x, y in zip(predicted, actual):
         predicted_labels.append(labels[int(x)])
@@ -25,37 +25,39 @@ def get_results(results):
     return df
 
 def get_accuracy_per_class(results):
-    for label in ["Non_Damage", "Land_Disaster", "Fire_Disaster", "Water_Disaster"]:
+    accuracies = {}
+    for label in ["Non-Damage", "Earthquake", "Fire", "Flood"]:
         total = results[results["True"] == label]
         correct = total[total["Correct"] == True]
         acc = len(correct) / len(total)
-        print(f"{label}\t{acc}")
+        accuracies[label] = acc
+    
+    bar_colors = ["tab:red", "tab:blue", "tab:green", "tab:orange"]
+    fig, ax = plt.subplots()
+    bar_container = ax.bar(accuracies.keys(), accuracies.values(), color=bar_colors)
+    ax.set(ylabel="Accuracy", xlabel="Natural Disaster", title="Accuracy per Class")
+    ax.bar_label(bar_container, fmt="{:,.3f}")
+    plt.show()
 
-    non_damage = results[results["True"] == "Non_Damage"]
-    n_normal = len(non_damage[non_damage["Predicted"] == "Non_Damage"])
-    n_fire = len(non_damage[non_damage["Predicted"] == "Fire_Disaster"])
-    n_flood = len(non_damage[non_damage["Predicted"] == "Water_Disaster"])
-    n_land = len(non_damage[non_damage["Predicted"] == "Land_Disaster"])
 
-    print(f"Normal: {n_normal}\t Fire: {n_fire}\t Flood: {n_flood}\t Land: {n_land}")
+def calculate_precision(y_true, y_pred, average=None):
+    return precision_score(y_true=y_true, y_pred=y_pred, average=average)
 
+def calculate_recall(y_true, y_pred, average=None):
+    return recall_score(y_true=y_true, y_pred=y_pred, average=average)
 
-def calculate_precision(results):
-    """
-                                            True
-                            | Normal | Earthquake | Fire | Flood
-                            --------------------------------------
-                    Normal |
-    Pred        Earthquake |
-                      Fire |
-                     Flood |
-    """
-    true_normal = len(results[results["True"] == "Non_Damage"])
-    true_earthquake = len(results[results["True"] == "Land_Disaster"])
-    true_fire = len(results[results["True"] == "Fire_Disaster"])
-    true_flood = len(results[results["True"] == "Water_Disaster"])
+def plot_precision_recall_curve(y_true, y_pred, label_names):
+    precision = {}
+    recall = {}
+    for i in range(len(label_names)):
+        precision[i], recall[i], _ = precision_recall_curve(y_true[:, i], y_pred[:, i])
+        plt.plot(recall[i], precision[i], lw=2, label="class {}".format(label_names[i]))
 
-    print(f"{true_normal=}\t{true_earthquake=}\t{true_fire=}\t{true_flood=}")
+    plt.xlabel("Recall")
+    plt.ylabel("Precision")
+    plt.legend(loc="best")
+    plt.title("Precision v. Recall Curve")
+    plt.show()
 
 def get_confusion_matrix(y_true, y_pred, label_names):
 
@@ -79,17 +81,17 @@ def get_confusion_matrix(y_true, y_pred, label_names):
     plt.show()
 
 def main():
-    # results = pd.read_csv("results_updated.csv")
-    # results["Correct"] = results["True"] == results["Predicted"]
-    # num_correct = len(results[results["Correct"] == True])
-    # print(f"Accuracy: {round(num_correct / len(results), 3)}")
-    label_names = ["Non_Damage", "Land_Disaster", "Fire_Disaster", "Water_Disaster"]
+    label_names = ["Non-Damage", "Earthquake", "Fire", "Flood"]
 
     results = pd.read_csv("resnet50_results.csv")
     df = get_results(results)
-    # calculate_precision(results)
+    precision = calculate_precision(df["True"], df["Predicted"], average="weighted")
+    recall = calculate_recall(df["True"], df["Predicted"], average="weighted")
+    print(f"Precision: {precision}")
+    print(f"Recall: {recall}")
     get_accuracy_per_class(df)
-    get_confusion_matrix(df["True"], df["Predicted"], label_names=label_names)
+    # get_confusion_matrix(df["True"], df["Predicted"], label_names=label_names)
+    # plot_precision_recall_curve(df["True"], df["Predicted"], label_names)
 
 if __name__ == "__main__":
     main()
