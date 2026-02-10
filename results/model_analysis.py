@@ -1,28 +1,10 @@
 import pandas as pd
-from sklearn.metrics import confusion_matrix, precision_recall_curve, precision_score, recall_score
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, auc, roc_curve
+from sklearn.preprocessing import label_binarize
 import matplotlib.pyplot as plt
 import seaborn as sns
+import torch
 
-def get_results(results):
-    predicted = results["Predicted"]
-    actual = results["True"]
-
-    predicted_labels = []
-    actual_labels = []
-
-    labels = ["Non-Damage", "Earthquake", "Fire", "Flood"]
-
-    for x, y in zip(predicted, actual):
-        predicted_labels.append(labels[int(x)])
-        actual_labels.append(labels[int(y)])
-
-    df = pd.DataFrame({
-        "Predicted": predicted_labels,
-        "True": actual_labels
-    })
-    df["Correct"] = df["Predicted"] == df["True"]
-
-    return df
 
 def get_accuracy_per_class(results):
     accuracies = {}
@@ -46,18 +28,26 @@ def calculate_precision(y_true, y_pred, average=None):
 def calculate_recall(y_true, y_pred, average=None):
     return recall_score(y_true=y_true, y_pred=y_pred, average=average)
 
-def plot_precision_recall_curve(y_true, y_pred, label_names):
-    precision = {}
-    recall = {}
-    for i in range(len(label_names)):
-        precision[i], recall[i], _ = precision_recall_curve(y_true[:, i], y_pred[:, i])
-        plt.plot(recall[i], precision[i], lw=2, label="class {}".format(label_names[i]))
 
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.legend(loc="best")
-    plt.title("Precision v. Recall Curve")
+def plot_roc_curve(label_names, y_true, y_score):
+    # See https://vitalflux.com/roc-curve-auc-python-false-positive-true-positive-rate/ for reference
+    y_true_bin = label_binarize(y_true, classes=label_names)
+    plt.figure(figsize=(10, 6))
+
+    for i, name in enumerate(label_names):
+        fpr, tpr, _ = roc_curve(y_true_bin[:, i], y_score[:, i])
+        roc_auc = auc(fpr, tpr)
+        plt.plot(fpr, tpr, label=f"{name} (AUC = {roc_auc:.3f})")
+
+    plt.plot([0, 1], [0, 1], linestyle='--', color='red', label="Random Classifier")   
+    plt.plot([0, 0, 1], [0, 1, 1], linestyle=':', color='green', label="Perfect Classifier")
+    plt.xlim([-0.05, 1.05])
+    plt.ylim([-0.05, 1.05])
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.legend(loc="lower right")
     plt.show()
+
 
 def get_confusion_matrix(y_true, y_pred, label_names):
 
@@ -83,15 +73,18 @@ def get_confusion_matrix(y_true, y_pred, label_names):
 def main():
     label_names = ["Non-Damage", "Earthquake", "Fire", "Flood"]
 
-    results = pd.read_csv("resnet50_results.csv")
-    df = get_results(results)
+    df = pd.read_csv("resnet50_results.csv")
+    df["Correct"] = df["Predicted"] == df["True"]
+
     precision = calculate_precision(df["True"], df["Predicted"], average="weighted")
     recall = calculate_recall(df["True"], df["Predicted"], average="weighted")
     print(f"Precision: {precision}")
     print(f"Recall: {recall}")
     get_accuracy_per_class(df)
-    # get_confusion_matrix(df["True"], df["Predicted"], label_names=label_names)
-    # plot_precision_recall_curve(df["True"], df["Predicted"], label_names)
+    idx_names = ["Non_Damage_Score","Earthquake_Score","Fire_Score","Flood_Score"]
+    scores = df[idx_names].values
+    get_confusion_matrix(df["True"], df["Predicted"], label_names=label_names)
+    plot_roc_curve(label_names, df["True"], scores)
 
 if __name__ == "__main__":
     main()

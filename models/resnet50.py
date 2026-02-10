@@ -19,17 +19,25 @@ def create_indices(labels):
     indices = list(mapping[category] for category in labels)
     return indices
 
-def write_to_csv(predicted, actual, write_path, header):
+def write_to_csv(predicted, actual, probs, write_path, header):
 
-    text = ""
-    for x, y in zip(predicted, actual):
-        if header:
-            text += "Predicted,Actual\n"
-        text += str(x.item()) + "," + str(y.item()) + "\n"
-        header = False
+    label_names = ["Non-Damage", "Earthquake", "Fire", "Flood"]
+
+    if header:
+        with open(write_path, "w") as file:
+            file.write("Predicted,True,Non_Damage_Score,Earthquake_Score,Fire_Score,Flood_Score\n")
 
     with open(write_path, "a") as file:
-        file.write(text)
+        for i in range(len(actual)):
+            file.write(
+                f"{label_names[actual[i].item()]},"
+                f"{label_names[predicted[i].item()]},"
+                f"{probs[i, 0].item()},"
+                f"{probs[i, 1].item()},"
+                f"{probs[i, 2].item()},"
+                f"{probs[i, 3].item()}\n"
+            )
+
 
 class ResNet50():
 
@@ -41,7 +49,7 @@ class ResNet50():
         self.num_features = self.model.fc.in_features
         self.model.fc = nn.Linear(self.num_features, self.num_classes)
 
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
         self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=self.momentum)
 
     def train(self, epochs, train_loader):
@@ -72,6 +80,7 @@ class ResNet50():
     def eval(self, test_loader):
         self.model.eval()
         header = True
+
         with torch.no_grad():
             correct = 0
             total = 0
@@ -81,11 +90,14 @@ class ResNet50():
                 labels = data[labels]
                 indices = create_indices(labels)
                 labels = torch.tensor(indices)
+
                 outputs = self.model(images)
                 _, predicted = torch.max(outputs.data, 1)
+                probs = torch.softmax(outputs, dim=1)
+
                 total += len(labels)
                 correct += (predicted == labels).sum().item()
-                write_to_csv(predicted, labels, write_path="../results/resnet50_results.csv", header=header)
+                write_to_csv(predicted, labels, probs, write_path="../results/resnet50_results.csv", header=header)
                 header = False
         
         print(f'Accuracy of the network on the test images: {round(100 * correct / total, 3)}%')

@@ -13,24 +13,7 @@ def rename_directories(old_name, new_name):
         current_dir = Path(old_name)
         current_dir.rename(new_name)
     except FileNotFoundError:
-        return   
-
-def write_to_csv(line, write_path, header=None):
-    mode = "a"
-    if header:
-        mode = "w"
-        with open(write_path, mode=mode) as csvfile:
-            csvfile.write(header)
-            csvfile.write("\n")
-        mode = "a"
-
-    text = ""
-    for item in line:
-        text += str(item) + ","
-    text = text[:-1]
-    with open(write_path, mode=mode) as csvfile:
-        csvfile.write(text)
-        csvfile.write("\n")            
+        return              
 
 def main():
     image_path = "../data/processed/Train/"
