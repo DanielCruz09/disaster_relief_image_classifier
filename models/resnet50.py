@@ -77,7 +77,7 @@ class ResNet50():
             "loss": last_loss
         }, "model_weights.pth")
 
-    def eval(self, test_loader):
+    def eval(self, test_loader, write_path=None):
         self.model.eval()
         header = True
 
@@ -97,7 +97,8 @@ class ResNet50():
 
                 total += len(labels)
                 correct += (predicted == labels).sum().item()
-                write_to_csv(predicted, labels, probs, write_path="../results/resnet50_results.csv", header=header)
+                if write_path:
+                    write_to_csv(predicted, labels, probs, write_path=write_path, header=header)
                 header = False
         
         print(f'Accuracy of the network on the test images: {round(100 * correct / total, 3)}%')
