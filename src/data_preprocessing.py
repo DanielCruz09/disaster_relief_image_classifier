@@ -6,7 +6,7 @@ from skimage.transform import resize
 import csv
 import zipfile
 import shutil
-from torchvision.transforms import Resize
+import torchvision.transforms as transforms
 
 def organize_files(src:str, dest:str) -> None:
     """
@@ -51,9 +51,19 @@ def resize_images(images_path:str, save_path:str) -> None:
     for filename in os.listdir(images_path):
         file_path = os.path.join(images_path, filename)
         img = Image.open(file_path, mode="r")
-        resize = Resize(size=img_dimensions)
-        resized_image = resize(img)
-        resized_image.save(os.path.join(save_path, filename))
+        # resize = transforms.Resize(size=img_dimensions)
+        # resized_image = resize(img)
+        transform = transforms.Compose([
+            transforms.Resize(img_dimensions),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.485, 0.456, 0.406],
+                std=[0.229, 0.224, 0.225]
+            ),
+            transforms.ToPILImage()
+        ])
+        transformed_image = transform(img)
+        transformed_image.save(os.path.join(save_path, filename))
 
 def main():
     path = "../data/raw/"

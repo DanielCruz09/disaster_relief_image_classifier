@@ -17,9 +17,6 @@ def rename_directories(old_name, new_name):
 
 def main():
     image_path = "../data/processed/Train/"
-    natural_disaster_dataset = NaturalDisasterDataset(root=image_path)
-    loader = DataLoader(natural_disaster_dataset, batch_size=32, shuffle=True)
-    # natural_disaster_dataset.load_sample()
     renamed = {
         "Normal": "Non_Damage",
         "Earthquake": "Land_Disaster",
@@ -30,20 +27,24 @@ def main():
         old_path = os.path.join(image_path, name)
         new_path = os.path.join(image_path, renamed[name])
         rename_directories(old_path, new_path)
+    natural_disaster_dataset = NaturalDisasterDataset(root=image_path)
+    loader = DataLoader(natural_disaster_dataset, batch_size=32, shuffle=True)
+    # natural_disaster_dataset.load_sample()
 
     resnet50 = ResNet50(num_classes=len(renamed), lr=0.001)
-    resnet50.train(epochs=4, train_loader=loader)
+    # resnet50.train(epochs=4, train_loader=loader)
     weights = torch.load("model_weights.pth")
     resnet50.model.load_state_dict(weights["model_state_dict"])
-    test_path = "../data/processed/Test/"
-    test_dataset = NaturalDisasterDataset(root=test_path)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
 
+    test_path = "../data/processed/Test/"
     for name in renamed.keys():
         old_path = os.path.join(test_path, name)
         new_path = os.path.join(test_path, renamed[name])
         rename_directories(old_path, new_path)
+    test_dataset = NaturalDisasterDataset(root=test_path)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
     resnet50.eval(test_loader=test_loader, write_path="../results/resnet50_results.csv")
+    
 
     val_path = "../data/processed/Val"
     for name in renamed.keys():
