@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, roc_curve, auc
 import seaborn as sns
 from sklearn.preprocessing import label_binarize
+from models.resnet50 import ResNet50
+import torch
 
 st.title("Natural Disaster Image Classification")
 
@@ -112,10 +114,25 @@ def draw_roc_curve(label_names, y_true, y_score):
     plt.legend(loc="lower right")
     st.pyplot(fig)
 
+def get_model(weights_path=None):
+    resnet50 = ResNet50(num_classes=4, lr=0.001)
+    weights = torch.load(weights_path, map_location="cpu")
+    resnet50.model.load_state_dict(weights["model_state_dict"])
+    return weights, resnet50
+
+def draw_loss_history(checkpoint):
+    epochs = checkpoint["epochs"]
+    loss_history = checkpoint["loss"]
+    fig, ax = plt.subplots()
+    ax.plot(epochs, loss_history, "bo--")
+    ax.set_xlabel("Epochs")
+    ax.set_ylabel("Loss")
+    st.pyplot(fig)
+
 st.divider()
 
 data_load_state = st.text("Loading data...")
-data = load_data("resnet50_results.csv")
+data = load_data("results/resnet50_results.csv")
 data_load_state.text("Loading data...done!")
 
 disaster = st.selectbox(
@@ -145,3 +162,8 @@ idx_names = ["Earthquake_Score","Fire_Score","Non_Damage_Score","Flood_Score"]
 scores = data[idx_names].values
 st.subheader("ROC Curve for each Class")
 draw_roc_curve(["Earthquake", "Fire", "Non-Damage", "Flood"], data["True"], scores)
+
+st.divider()
+st.subheader("Loss during Training")
+checkpoint, model = get_model("models/model_weights.pth")
+draw_loss_history(checkpoint)

@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 import os
 import pandas as pd
 
+
 def create_indices(labels):
     mapping = {
         "Non_Damage": 0,
@@ -53,7 +54,8 @@ class ResNet50():
         self.optimizer = optim.SGD(self.model.parameters(), lr=self.lr, momentum=self.momentum)
 
     def train(self, epochs, train_loader):
-        last_loss = 0
+        loss_over_time = []
+        num_epochs = []
         for epoch in range(epochs):
             self.model.train()
             current_loss = 0.0
@@ -67,14 +69,15 @@ class ResNet50():
                 loss.backward()
                 self.optimizer.step()
                 current_loss += loss.item()
-                last_loss = current_loss
+                loss_over_time.append(current_loss)
+            num_epochs.append(epoch)
             print(f"Epoch: {epoch + 1} \t Loss: {current_loss / len(train_loader)}")
 
         torch.save({
             "model_state_dict": self.model.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
             "epochs": epochs,
-            "loss": last_loss
+            "loss": loss_over_time
         }, "model_weights.pth")
 
     def eval(self, test_loader, write_path=None):

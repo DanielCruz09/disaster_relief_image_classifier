@@ -31,8 +31,8 @@ def main():
     loader = DataLoader(natural_disaster_dataset, batch_size=32, shuffle=True)
     # natural_disaster_dataset.load_sample()
 
-    resnet50 = ResNet50(num_classes=len(renamed), lr=0.001)
-    # resnet50.train(epochs=4, train_loader=loader)
+    resnet50 = ResNet50(num_classes=len(renamed))
+    resnet50.train(epochs=4, train_loader=loader)
     weights = torch.load("model_weights.pth")
     resnet50.model.load_state_dict(weights["model_state_dict"])
 
