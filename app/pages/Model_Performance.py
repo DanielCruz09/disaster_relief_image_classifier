@@ -1,11 +1,12 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.metrics import confusion_matrix, roc_curve, auc, precision_score, recall_score, f1_score
 import seaborn as sns
 from sklearn.preprocessing import label_binarize
 from models.resnet50 import ResNet50
 import torch
+import numpy as np
 
 st.title("Natural Disaster Image Classification")
 
@@ -16,10 +17,10 @@ st.set_page_config(
 )
 
 classes_to_colors = {
-    "Earthquake": "tab:red",
-    "Fire": "tab:blue",
+    "Earthquake": "tab:orange",
+    "Fire": "tab:red",
     "Non-Damage": "tab:green",
-    "Flood": "tab:orange"
+    "Flood": "tab:blue"
 }
 
 @st.cache_data
@@ -30,20 +31,63 @@ def load_data(path):
 
 def get_counts(results, option=None):
     if option:
+        classes = [option]
+        counts = [
+            len(results[results["True"] == label]) for label in classes
+        ]
+        predictions = [
+            len(results[results["Predicted"] == label]) for label in classes
+        ]
+        data = {
+            "True": counts,
+            "Predicted": predictions
+        }
+        x = np.arange(len(classes))
+        width = 0.25
+        multiplier = 0
+
         fig, ax = plt.subplots()
-        bar_container = ax.bar(option, len(results[results["True"] == option]), color=classes_to_colors[option])
-        ax.set(ylabel="Count", xlabel="Natural Disaster", title=f"Count for Class: {option}")
-        ax.bar_label(bar_container, fmt="{:,.0f}")
+        for k, v in data.items():
+            offset = width * multiplier
+            rects = ax.bar(x + offset, v, width, label=k)
+            ax.bar_label(rects, padding=3)
+            multiplier += 1
+
+        ax.set_title("Count per Class")
+        ax.set_ylabel("Count")
+        ax.set_xlabel("Natural Disaster")
+        ax.set_xticks(x + width, classes)
+        ax.legend(loc="upper left", ncols=3)
         st.pyplot(fig)
         return
 
-    classes = results["True"].unique()
-    counts = results["True"].value_counts()
+    classes = classes_to_colors.keys()
+    counts = [
+        len(results[results["True"] == label]) for label in classes
+    ]
+    predictions = [
+        len(results[results["Predicted"] == label]) for label in classes
+    ]
+    data = {
+        "True": counts,
+        "Predicted": predictions
+    }
+    x = np.arange(len(classes))
+    width = 0.25
+    multiplier = 0
+
     fig, ax = plt.subplots()
-    bar_colors = ["tab:red", "tab:blue", "tab:green", "tab:orange"]
-    bar_container = ax.bar(classes, counts, color=bar_colors)
-    ax.set(ylabel="Count", xlabel="Natural Disaster", title="Count per Class")
-    ax.bar_label(bar_container, fmt="{:,.0f}")
+    for k, v in data.items():
+        offset = width * multiplier
+        rects = ax.bar(x + offset, v, width, label=k)
+        ax.bar_label(rects, padding=3)
+        multiplier += 1
+
+    ax.set_title("Count per Class")
+    ax.set_ylabel("Count")
+    ax.set_xlabel("Natural Disaster")
+    ax.set_xticks(x + width, classes)
+    ax.legend(loc="upper left", ncols=3)
     st.pyplot(fig)
 
 def get_accuracy_per_class(results, option=None):
@@ -71,6 +115,21 @@ def get_accuracy_per_class(results, option=None):
     fig, ax = plt.subplots()
     bar_container = ax.bar(accuracies.keys(), accuracies.values(), color=bar_colors)
     ax.set(ylabel="Accuracy", xlabel="Natural Disaster", title="Accuracy per Class")
+    ax.bar_label(bar_container, fmt="{:,.3f}")
+    st.pyplot(fig)
+
+def get_precision_recall_f1(results):
+    precision_values = precision_score(results["True"], results["Predicted"], average="weighted")
+    recall_values = recall_score(results["True"], results["Predicted"], average="weighted")
+    f1_values = f1_score(results["True"], results["Predicted"], average="weighted")
+
+    fig, ax = plt.subplots()
+    bar_container = ax.bar(
+        ["Precision", "Recall", "F1"], 
+        [precision_values, recall_values, f1_values],
+        color=["tab:blue", "tab:orange", "tab:green"]
+    )
+    ax.set(title="Precision, Recall, F1", ylabel="Score", xlabel="Metric")
     ax.bar_label(bar_container, fmt="{:,.3f}")
     st.pyplot(fig)
 
@@ -144,7 +203,7 @@ disaster = st.selectbox(
 
 st.divider()
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     st.subheader("Accuracy per Class")
     get_accuracy_per_class(data, disaster)
@@ -152,6 +211,10 @@ with col1:
 with col2:
     st.subheader("Count per Class")
     get_counts(data, disaster)
+
+with col3:
+    st.subheader("Precision, Recall, F1")
+    get_precision_recall_f1(data)
 
 st.divider()
 
