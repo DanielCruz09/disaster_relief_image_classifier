@@ -203,6 +203,7 @@ disaster = st.selectbox(
 
 st.divider()
 
+st.subheader("Count, Accuracy, Precision, and Recall")
 col1, col2, col3 = st.columns(3)
 with col1:
     st.subheader("Accuracy per Class")
@@ -218,6 +219,7 @@ with col3:
 
 st.divider()
 
+st.subheader("Confusion Matrix")
 draw_confusion_matrix(data["True"], data["Predicted"], ["Earthquake", "Fire", "Non-Damage", "Flood"])
 st.divider()
 
