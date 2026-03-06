@@ -203,32 +203,77 @@ disaster = st.selectbox(
 
 st.divider()
 
-st.subheader("Count, Accuracy, Precision, and Recall")
+st.subheader("Accuracy, Precision, Recall, and F1 Scores")
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.subheader("Accuracy per Class")
+    st.subheader("Accuracy for each Category")
     get_accuracy_per_class(data, disaster)
 
 with col2:
-    st.subheader("Count per Class")
+    st.subheader("Number of Predictions vs Actual Cases")
     get_counts(data, disaster)
 
 with col3:
-    st.subheader("Precision, Recall, F1")
+    st.subheader("Overall Precision, Recall, and F1 Scores")
     get_precision_recall_f1(data)
+
+st.markdown(
+    """
+    ### Significance
+    1. **Accuracy** is the ratio of how many cases the model classified correctly per class out of *all classes*.
+    2. **Precision** measures how many cases the model classified correctly as one class out of *all predictions of that class*; 
+    it gives more weight to minimizing the number of false positives.
+    3. **Recall** represents how many cases the model classified correctly as one class out of *all cases in that class*;
+    it matters more when minimizing the number of false negatives.
+    4. The **F1 score** gives equal weight to reducing the number of both false positives and false negatives;
+    it is the *harmonic mean* of precision and recall.
+    """
+)
 
 st.divider()
 
 st.subheader("Confusion Matrix")
 draw_confusion_matrix(data["True"], data["Predicted"], ["Earthquake", "Fire", "Non-Damage", "Flood"])
+st.markdown(
+    """
+    ### Significance
+
+    A confusion matrix demonstrates the model's performance per class. 
+    Here, the diagonal shows how many cases the model correctly predicted.
+    Thus, the higher the numbers on the diagonal, the better the model's performance.
+    """
+)
+
 st.divider()
 
 idx_names = ["Earthquake_Score","Fire_Score","Non_Damage_Score","Flood_Score"]
 scores = data[idx_names].values
 st.subheader("ROC Curve for each Class")
 draw_roc_curve(["Earthquake", "Fire", "Non-Damage", "Flood"], data["True"], scores)
+st.markdown(
+    """
+    ### Significance
+
+    An ROC curve compares the true positive rate and false positive rate for each decision threshold of the model.
+    The AUC (area under the curve) measures how much space falls under the curve.
+    The red dotted line represents a random classifier (no better than random choice).
+    Thus, the further away each curve is from the random classifier and closer to the top left, the better the model's performance.
+    Here, the AUC for each curve is extremely close to 1.0, indicating near perfect prediction power.
+    Note that the model was analyzed using a One vs Rest strategy.
+    """
+)
 
 st.divider()
 st.subheader("Loss during Training")
 checkpoint, model = get_model("models/model_weights.pth")
 draw_loss_history(checkpoint)
+st.markdown(
+    """
+    ### Significance
+
+    Loss represents the difference between the predicted outputs and the true outputs. 
+    The lower the difference, the better the model is at classification.
+    Here, the model's loss decreases significantly after four epochs.
+    Note that the loss function the model uses is Cross Entropy.
+    """
+)
