@@ -20,7 +20,6 @@ st.markdown(
     This model can classify natural disasters from the following categories:
     """
 )
-
 image_path = "/app/data/raw/Train/"
 dataset = NaturalDisasterDataset(image_path)
 

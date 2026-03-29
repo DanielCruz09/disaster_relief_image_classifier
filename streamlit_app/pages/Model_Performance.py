@@ -173,17 +173,25 @@ def draw_roc_curve(label_names, y_true, y_score):
     plt.legend(loc="lower right")
     st.pyplot(fig)
 
-def get_model(weights_path=None):
-    resnet50 = ResNet50(num_classes=4, lr=0.001)
-    weights = torch.load(weights_path, map_location="cpu")
-    resnet50.model.load_state_dict(weights["model_state_dict"])
-    return weights, resnet50
+# def get_model(weights_path=None):
+#     resnet50 = ResNet50(num_classes=4, lr=0.001)
+#     weights = torch.load(weights_path, map_location="cpu")
+#     resnet50.model.load_state_dict(weights["model_state_dict"])
+#     return weights, resnet50
 
-def draw_loss_history(checkpoint):
-    epochs = checkpoint["epochs"]
-    loss_history = checkpoint["loss"]
+# def draw_loss_history(checkpoint):
+#     epochs = checkpoint["epochs"]
+#     loss_history = checkpoint["loss"]
+#     fig, ax = plt.subplots()
+#     ax.plot(epochs, loss_history, "bo--")
+#     ax.set_xlabel("Epochs")
+#     ax.set_ylabel("Loss")
+#     st.pyplot(fig)
+
+def draw_loss_history(path):
+    history = pd.read_csv(path)
     fig, ax = plt.subplots()
-    ax.plot(epochs, loss_history, "bo--")
+    ax.plot(history["Epochs"], history["Loss"], "bo--")
     ax.set_xlabel("Epochs")
     ax.set_ylabel("Loss")
     st.pyplot(fig)
@@ -191,7 +199,7 @@ def draw_loss_history(checkpoint):
 st.divider()
 
 data_load_state = st.text("Loading data...")
-data = load_data("results/resnet50_results.csv")
+data = load_data("/app/results/resnet50_results.csv")
 data_load_state.text("Loading data...done!")
 
 disaster = st.selectbox(
@@ -265,8 +273,8 @@ st.markdown(
 
 st.divider()
 st.subheader("Loss during Training")
-checkpoint, model = get_model("models/model_weights.pth")
-draw_loss_history(checkpoint)
+# checkpoint, model = get_model("models/model_weights.pth")
+draw_loss_history("/app/results/model_progress.csv")
 st.markdown(
     """
     ### Significance
