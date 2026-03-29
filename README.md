@@ -14,7 +14,8 @@
 4. [Model](#model)
 5. [Streamlit-App](#streamlit-app)
 6. [Docker-Deployment](#docker-deployment)
-7. [Possible-Improvements](#possible-improvements)
+7. [Results](#results)
+8. [Possible-Improvements](#possible-improvements)
 
 ## Overview
 
